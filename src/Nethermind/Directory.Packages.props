@@ -22,6 +22,7 @@
     <PackageVersion Include="FluentAssertions.Json" Version="[6.1.0]" />
     <PackageVersion Include="Google.Protobuf" Version="3.30.2" />
     <PackageVersion Include="Google.Protobuf.Tools" Version="3.30.2" />
+    <PackageVersion Include="Grandine.Bindings" Version="1.0.0-beta9" />
     <PackageVersion Include="Grpc" Version="2.46.6" />
     <PackageVersion Include="Grpc.Tools" Version="2.71.0" />
     <PackageVersion Include="HexMate" Version="0.0.3" />
