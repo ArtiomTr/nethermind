@@ -97,6 +97,7 @@
   <Project Path="Nethermind.EthStats/Nethermind.EthStats.csproj" />
   <Project Path="Nethermind.Evm/Nethermind.Evm.csproj" />
   <Project Path="Nethermind.Facade/Nethermind.Facade.csproj" />
+  <Project Path="Nethermind.Grandine/Nethermind.Grandine.csproj" />
   <Project Path="Nethermind.Grpc/Nethermind.Grpc.csproj" />
   <Project Path="Nethermind.HealthChecks/Nethermind.HealthChecks.csproj" />
   <Project Path="Nethermind.Init.Snapshot/Nethermind.Init.Snapshot.csproj" />
