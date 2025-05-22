@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using Nethermind.Api;
 using Nethermind.Api.Extensions;
 using Nethermind.Logging;
+using Nethermind.JsonRpc;
+using Nethermind.Core;
 using Grandine.Bindings;
 
 namespace Nethermind.Grandine;
@@ -30,9 +32,27 @@ public class GrandinePlugin(IGrandineConfig grandineConfig) : INethermindPlugin
 
         Type configType = grandineConfig.GetType();
 
+        var rpcConfig = nethermindApi.Config<IJsonRpcConfig>();
+
         PropertyInfo[] properties = configType.GetInterface("IGrandineConfig").GetProperties(BindingFlags.Public | BindingFlags.Instance);
 
         var arguments = new List<string>();
+
+        if (rpcConfig.JwtSecretFile != null && grandineConfig.JwtSecret == null)
+        {
+            arguments.Add("--jwt-secret");
+            arguments.Add(rpcConfig.JwtSecretFile);
+        }
+
+        arguments.Add("--eth1-rpc-urls");
+        arguments.Add($"http://127.0.0.1:{rpcConfig.Port}");
+
+        if (grandineConfig.Network == null)
+        {
+            (IApiWithStores getFromApi, _) = nethermindApi.ForInit;
+            arguments.Add("--network");
+            arguments.Add(BlockchainIds.GetBlockchainName(getFromApi.ChainSpec.ChainId).ToLower());
+        }
 
         foreach (PropertyInfo prop in properties)
         {
