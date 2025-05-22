@@ -1,0 +1,44 @@
+name: "Run a node with embedded grandine"
+
+on:
+  workflow_dispatch:
+    inputs:
+      os:
+        description: "Select a machine on which You want to run a node"
+        default: "ubuntu-latest"
+        required: true
+        type: choice
+        options:
+          - ubuntu-latest
+          - windows-latest
+          - macos-latest
+
+jobs:
+  run:
+    runs-on: ${{ inputs.os }}
+    steps:
+      - name: Download release
+        uses: robinraju/release-downloader@v1
+        with:
+          tag: '0.0.1'
+          fileName: '*.zip'
+
+      - name: Unzip archive (linux)
+        if: inputs.os == 'ubuntu-latest'
+        run: unzip nethermind-0.0.1-3eeed2e7-linux-x64.zip -d nethermind
+
+      - name: Unzip archive (macos)
+        if: inputs.os == 'macos-latest'
+        run: unzip nethermind-0.0.1-3eeed2e7-macos-arm64.zip -d nethermind
+
+      - name: Unzip archive (windows)
+        if: inputs.os == 'windows-latest'
+        run: 7z x nethermind-0.0.1-3eeed2e7-windows-x64.zip -onethermind
+
+      - name: Run nethermind (linux/macos)
+        if: inputs.os != 'windows-latest'
+        run: ./nethermind/nethermind --jsonrpc-jwtsecretfile ./jwtsecret --JsonRpc.EnabledModules Eth,Subscribe,Trace,TxPool,Web3,Personal,Proof,Net,Parity,Health,Rpc,Engine -c mainnet --Grandine.Enabled true --Grandine.CheckpointSyncUrl https://beaconstate.ethstaker.cc --Grandine.PruneStorage --Grandine.ForceCheckpointSync
+
+      - name: Run nethermind (windows)
+        if: inputs.os == 'windows-latest'
+        run: ./nethermind/nethermind.exe --jsonrpc-jwtsecretfile ./jwtsecret --JsonRpc.EnabledModules Eth,Subscribe,Trace,TxPool,Web3,Personal,Proof,Net,Parity,Health,Rpc,Engine -c mainnet --Grandine.Enabled true --Grandine.CheckpointSyncUrl https://beaconstate.ethstaker.cc --Grandine.PruneStorage --Grandine.ForceCheckpointSync
