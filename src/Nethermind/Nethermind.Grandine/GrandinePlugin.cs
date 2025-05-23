@@ -2,14 +2,17 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 
 using System;
+using System.IO;
 using System.Reflection;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Nethermind.Api;
 using Nethermind.Api.Extensions;
-using Nethermind.Logging;
-using Nethermind.JsonRpc;
 using Nethermind.Core;
+using Nethermind.Core.Authentication;
+using Nethermind.JsonRpc;
+using Nethermind.Logging;
 using Grandine.Bindings;
 
 namespace Nethermind.Grandine;
@@ -20,15 +23,14 @@ public class GrandinePlugin(IGrandineConfig grandineConfig) : INethermindPlugin
     public string Description => "Nethermind plugin to enable embedded grandine CL client";
     public string Author => "Grandine team";
 
-    private ILogger logger;
+    private ILogger _logger;
 
     public bool Enabled => grandineConfig.Enabled;
 
     public Task Init(INethermindApi nethermindApi)
     {
-
-        logger = nethermindApi.LogManager.GetClassLogger();
-        logger.Debug("Initializing grandine plugin...");
+        _logger = nethermindApi.LogManager.GetClassLogger();
+        _logger.Debug("Initializing grandine plugin...");
 
         Type configType = grandineConfig.GetType();
 
@@ -38,10 +40,14 @@ public class GrandinePlugin(IGrandineConfig grandineConfig) : INethermindPlugin
 
         var arguments = new List<string>();
 
-        if (rpcConfig.JwtSecretFile != null && grandineConfig.JwtSecret == null)
+        var jwtSecretFile = grandineConfig.JwtSecret ?? rpcConfig.JwtSecretFile;
+        if (jwtSecretFile != null)
         {
             arguments.Add("--jwt-secret");
-            arguments.Add(rpcConfig.JwtSecretFile);
+            arguments.Add(jwtSecretFile);
+
+            // make sure jwt exists, before starting grandine
+            JwtAuthentication.FromFile(jwtSecretFile, new Timestamper(DateTime.UtcNow), _logger);
         }
 
         arguments.Add("--eth1-rpc-urls");
@@ -95,7 +101,7 @@ public class GrandinePlugin(IGrandineConfig grandineConfig) : INethermindPlugin
             }
         }
 
-        logger.Debug($"Starting grandine with arguments: {string.Join(", ", arguments)}");
+        _logger.Debug($"Starting grandine with arguments: {string.Join(", ", arguments)}");
 
         Task task = new Task(() =>
         {
@@ -106,7 +112,7 @@ public class GrandinePlugin(IGrandineConfig grandineConfig) : INethermindPlugin
             }
             catch (Exception e)
             {
-                logger.Error($"Failed to start grandine: {e}");
+                _logger.Error($"Failed to start grandine: {e}");
             }
         });
         task.Start();

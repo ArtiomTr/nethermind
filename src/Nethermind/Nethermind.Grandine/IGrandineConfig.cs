@@ -161,7 +161,7 @@ public interface IGrandineConfig : IConfig
     public string JwtId { get; set; }
 
     [ConfigItem(Description = "Path to a file containing the hex-encoded 256 bit secret key to be used for verifying/generating JWT tokens")]
-    [GrandineConfigItem(Name = "--jwt-secret")]
+    // [GrandineConfigItem(Name = "--jwt-secret")] - this config item is not needed, as jwt secret is handled separately
     public string JwtSecret { get; set; }
 
     [ConfigItem(Description = "Optional CL node type/version to send to EL in the JWT token claim", DefaultValue = "None")]
